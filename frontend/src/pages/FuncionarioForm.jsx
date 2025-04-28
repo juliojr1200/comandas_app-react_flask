@@ -1,3 +1,4 @@
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import {
     TextField,
@@ -10,12 +11,15 @@ import {
     Select,
     Toolbar
 } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 const FuncionarioForm = () => {
-    const { register, handleSubmit, reset, formState: { errors } } = useForm();
+    const { register, handleSubmit, formState: { errors } } = useForm();
+    const navigate = useNavigate();
 
     const onSubmit = (data) => {
         console.log("Dados do funcionário:", data);
+        navigate('/funcionarios');
     };
 
     return (
@@ -68,7 +72,8 @@ const FuncionarioForm = () => {
                     <Select
                         labelId="grupo-label"
                         label="Grupo"
-                        {...register('grupo')}
+                        {...register('grupo', { required: 'Grupo é obrigatório' })}
+                        error={!!errors.grupo}
                     >
                         <MenuItem value="admin">Admin</MenuItem>
                         <MenuItem value="gerente">Gerente</MenuItem>
@@ -76,7 +81,7 @@ const FuncionarioForm = () => {
                     </Select>
                 </FormControl>
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-                    <Button sx={{ mr: 1 }}>
+                    <Button sx={{ mr: 1 }} onClick={() => navigate('/funcionarios')}>
                         Cancelar
                     </Button>
                     <Button type="submit" variant="contained">
