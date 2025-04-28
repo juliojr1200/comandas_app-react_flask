@@ -1,32 +1,36 @@
-import { AppBar, Toolbar, Typography, Button } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
+import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../AuthContext';
 
 const Navbar = () => {
-    // useNavigate é um hook do React Router que permite programaticamente navegar entre rotas
+    const { isAuthenticated, logout } = useAuth();
     const navigate = useNavigate();
-    // Verifica se o login foi realizado, se sim, exibe os botões de navegação
-    const loginRealizado = localStorage.getItem('loginRealizado');
-    // Evento para deslogar o usuário, remove o item 'loginRealizado' do localStorage e navega para a página de login
-    const handleLogout = () => {
-    localStorage.removeItem('loginRealizado');
-    navigate('/login');
-    };
+    const location = useLocation(); // Hook para obter a rota atual
+
+    // Não exibir a Navbar na página de login
+    if (location.pathname === '/login') return null;
+
+    // Não exibir a Navbar se o usuário não estiver autenticado
+    if (!isAuthenticated) return null;
 
     return (
-        <AppBar position="static">
+        <AppBar position="static" sx={{ mb: 2 }}>
             <Toolbar>
-                <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>Comandas</Typography>
-                {loginRealizado && (
-                <>
-                    <Button color="inherit" onClick={() => navigate('/home')} >Home</Button>
-                    <Button color="inherit" onClick={() => navigate('/funcionarios')}>Funcionários</Button>
-                    <Button color="inherit" onClick={() => navigate('/clientes')}>Clientes</Button>
-                    <Button color="inherit" onClick={() => navigate('/produtos')}>Produtos</Button>
-                    <Button color="inherit" onClick={handleLogout}>Sair</Button>
-                </>
-                )}
+                <Typography variant="h6" sx={{ flexGrow: 1 }}>
+                    Comandas App
+                </Typography>
+                <Box>
+                    <Button color="inherit" onClick={() => navigate('/')}>Home</Button>
+                    <Button color="inherit" onClick={() => navigate('/funcionarios')}>Funcionário</Button>
+                    <Button color="inherit" onClick={() => navigate('/clientes')}>Cliente</Button>
+                    <Button color="inherit" onClick={() => navigate('/produtos')}>Produto</Button>
+                    {/* <Button color="inherit" onClick={() => navigate('/login')}>Login</Button> */}
+                    <Button color="inherit" onClick={() => { logout(); navigate('/login'); }}>Sair</Button>
+                </Box>
             </Toolbar>
         </AppBar>
     );
 };
+
 export default Navbar;

@@ -1,60 +1,213 @@
-import React from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Typography, Button, Toolbar } from '@mui/material';
-import { Edit, Delete, Visibility, FiberNew } from '@mui/icons-material';
+import React, { useEffect, useRef } from 'react';
+import { useForm } from 'react-hook-form';
+import { TextField, Button, Box, Typography, Toolbar } from '@mui/material';
+import InputMask from 'react-input-mask';
 import { useNavigate } from 'react-router-dom';
 
-function ClienteList() {
+const ClienteForm = () => {
+    const { register, handleSubmit, watch, formState: { errors } } = useForm();
     const navigate = useNavigate();
+    const nomeRef = useRef(null);
 
-    // Dados mockados para simular a lista de clientes
-    const clientes = [
-        { id: 1, nome: 'Ana Pereira', cpf: '111.222.333-44', telefone: '(11) 98765-4321', email: 'ana@example.com' },
-        { id: 2, nome: 'Pedro Costa', cpf: '555.666.777-88', telefone: '(21) 91234-5678', email: 'pedro@example.com' },
-        { id: 3, nome: 'Luiza Almeida', cpf: '999.888.777-66', telefone: '(31) 99876-5432', email: 'luiza@example.com' },
-    ];
+    // Foco inicial no campo nome
+    useEffect(() => {
+        nomeRef.current?.focus();
+    }, []);
+
+    // Monitorar campos para habilitar/desabilitar o botão de submit
+    const formValues = watch();
+    const isFormValid = formValues.nome && formValues.cpf && formValues.telefone && formValues.email && 
+                        formValues.cep && formValues.endereco && formValues.bairro && formValues.cidade;
+
+    const onSubmit = (data) => {
+        console.log("Dados do cliente:", data);
+        navigate('/clientes');
+    };
 
     return (
-        <TableContainer component={Paper}>
-            <Toolbar sx={{ backgroundColor: '#ADD8E6', padding: 2, borderRadius: 1, mb: 2, display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="h6" color="primary">Clientes</Typography>
-                <Button color="primary" onClick={() => navigate('/cliente')} startIcon={<FiberNew />}>Novo</Button>
+        <Box sx={{ maxWidth: 600, mx: 'auto', mt: 4, p: 3, backgroundColor: '#f5f5f5', borderRadius: 2, boxShadow: 3 }}>
+            <Toolbar sx={{ backgroundColor: '#ADD8E6', padding: 1, borderRadius: 2, mb: 2 }}>
+                <Typography variant="h5" color="primary">Cadastro de Cliente</Typography>
             </Toolbar>
-            <Table>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>ID</TableCell>
-                        <TableCell>Nome</TableCell>
-                        <TableCell>CPF</TableCell>
-                        <TableCell>Telefone</TableCell>
-                        <TableCell>Email</TableCell>
-                        <TableCell>Ações</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {clientes.map((cliente) => (
-                        <TableRow key={cliente.id}>
-                            <TableCell>{cliente.id}</TableCell>
-                            <TableCell>{cliente.nome}</TableCell>
-                            <TableCell>{cliente.cpf}</TableCell>
-                            <TableCell>{cliente.telefone}</TableCell>
-                            <TableCell>{cliente.email}</TableCell>
-                            <TableCell>
-                                <IconButton onClick={() => navigate(`/cliente/${cliente.id}`)}>
-                                    <Visibility color="primary" />
-                                </IconButton>
-                                <IconButton onClick={() => navigate(`/cliente/${cliente.id}`)}>
-                                    <Edit color="secondary" />
-                                </IconButton>
-                                <IconButton onClick={() => alert(`Deletar cliente ${cliente.id}`)}>
-                                    <Delete color="error" />
-                                </IconButton>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
+            <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ backgroundColor: 'white', p: 3, borderRadius: 2 }}>
+                <TextField
+                    inputRef={nomeRef}
+                    label="Nome *"
+                    fullWidth
+                    margin="normal"
+                    {...register('nome', { 
+                        required: 'Nome é obrigatório', 
+                        maxLength: { value: 100, message: 'Máximo 100 caracteres' } 
+                    })}
+                    error={!!errors.nome}
+                    helperText={errors.nome?.message}
+                    sx={{
+                        '& .MuiOutlinedInput-root': {
+                            '&:hover fieldset': { borderColor: '#1976d2' },
+                            '&.Mui-focused fieldset': { borderColor: '#4caf50' },
+                        }
+                    }}
+                />
+                <TextField
+                    label="CPF *"
+                    fullWidth
+                    margin="normal"
+                    {...register('cpf', { 
+                        required: 'CPF é obrigatório', 
+                        maxLength: { value: 14, message: 'Máximo 14 caracteres' } 
+                    })}
+                    error={!!errors.cpf}
+                    helperText={errors.cpf?.message}
+                    sx={{
+                        '& .MuiOutlinedInput-root': {
+                            '&:hover fieldset': { borderColor: '#1976d2' },
+                            '&.Mui-focused fieldset': { borderColor: '#4caf50' },
+                        }
+                    }}
+                />
+                <InputMask
+                    mask="(99) 99999-9999"
+                    {...register('telefone', { 
+                        required: 'Telefone é obrigatório', 
+                        pattern: { 
+                            value: /^\(\d{2}\) \d{5}-\d{4}$/, 
+                            message: 'Telefone deve ter 11 dígitos (ex.: (99) 99999-9999)' 
+                        } 
+                    })}
+                >
+                    {() => (
+                        <TextField
+                            label="Telefone *"
+                            fullWidth
+                            margin="normal"
+                            error={!!errors.telefone}
+                            helperText={errors.telefone?.message}
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    '&:hover fieldset': { borderColor: '#1976d2' },
+                                    '&.Mui-focused fieldset': { borderColor: '#4caf50' },
+                                }
+                            }}
+                        />
+                    )}
+                </InputMask>
+                <TextField
+                    label="E-mail *"
+                    fullWidth
+                    margin="normal"
+                    {...register('email', { 
+                        required: 'E-mail é obrigatório', 
+                        pattern: { value: /^\S+@\S+$/i, message: 'E-mail inválido' },
+                        maxLength: { value: 100, message: 'Máximo 100 caracteres' }
+                    })}
+                    error={!!errors.email}
+                    helperText={errors.email?.message}
+                    sx={{
+                        '& .MuiOutlinedInput-root': {
+                            '&:hover fieldset': { borderColor: '#1976d2' },
+                            '&.Mui-focused fieldset': { borderColor: '#4caf50' },
+                        }
+                    }}
+                />
+                <InputMask
+                    mask="99999-999"
+                    {...register('cep', { 
+                        required: 'CEP é obrigatório', 
+                        pattern: { 
+                            value: /^\d{5}-\d{3}$/, 
+                            message: 'CEP deve ter 8 dígitos (ex.: 99999-999)' 
+                        } 
+                    })}
+                >
+                    {() => (
+                        <TextField
+                            label="CEP *"
+                            fullWidth
+                            margin="normal"
+                            error={!!errors.cep}
+                            helperText={errors.cep?.message}
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    '&:hover fieldset': { borderColor: '#1976d2' },
+                                    '&.Mui-focused fieldset': { borderColor: '#4caf50' },
+                                }
+                            }}
+                        />
+                    )}
+                </InputMask>
+                <TextField
+                    label="Endereço *"
+                    fullWidth
+                    margin="normal"
+                    {...register('endereco', { 
+                        required: 'Endereço é obrigatório', 
+                        maxLength: { value: 150, message: 'Máximo 150 caracteres' } 
+                    })}
+                    error={!!errors.endereco}
+                    helperText={errors.endereco?.message}
+                    sx={{
+                        '& .MuiOutlinedInput-root': {
+                            '&:hover fieldset': { borderColor: '#1976d2' },
+                            '&.Mui-focused fieldset': { borderColor: '#4caf50' },
+                        }
+                    }}
+                />
+                <TextField
+                    label="Bairro *"
+                    fullWidth
+                    margin="normal"
+                    {...register('bairro', { 
+                        required: 'Bairro é obrigatório', 
+                        maxLength: { value: 50, message: 'Máximo 50 caracteres' } 
+                    })}
+                    error={!!errors.bairro}
+                    helperText={errors.bairro?.message}
+                    sx={{
+                        '& .MuiOutlinedInput-root': {
+                            '&:hover fieldset': { borderColor: '#1976d2' },
+                            '&.Mui-focused fieldset': { borderColor: '#4caf50' },
+                        }
+                    }}
+                />
+                <TextField
+                    label="Cidade *"
+                    fullWidth
+                    margin="normal"
+                    {...register('cidade', { 
+                        required: 'Cidade é obrigatória', 
+                        maxLength: { value: 50, message: 'Máximo 50 caracteres' } 
+                    })}
+                    error={!!errors.cidade}
+                    helperText={errors.cidade?.message}
+                    sx={{
+                        '& .MuiOutlinedInput-root': {
+                            '&:hover fieldset': { borderColor: '#1976d2' },
+                            '&.Mui-focused fieldset': { borderColor: '#4caf50' },
+                        }
+                    }}
+                />
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
+                    <Button 
+                        variant="outlined" 
+                        color="secondary" 
+                        sx={{ mr: 2 }} 
+                        onClick={() => navigate('/clientes')}
+                    >
+                        Cancelar
+                    </Button>
+                    <Button 
+                        type="submit" 
+                        variant="contained" 
+                        color="primary" 
+                        disabled={!isFormValid}
+                        sx={{ px: 4 }}
+                    >
+                        Cadastrar
+                    </Button>
+                </Box>
+            </Box>
+        </Box>
     );
-}
+};
 
-export default ClienteList;
+export default ClienteForm;
