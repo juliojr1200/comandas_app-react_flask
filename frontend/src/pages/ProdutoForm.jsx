@@ -1,10 +1,11 @@
 import React, { useEffect, useRef } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { TextField, Button, Box, Typography, Toolbar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import IMaskInputWrapper from '../components/IMaskInputWrapper'; // Importa o wrapper
 
 const ProdutoForm = () => {
-    const { register, handleSubmit, watch, formState: { errors } } = useForm();
+    const { control, register, handleSubmit, watch, formState: { errors } } = useForm();
     const navigate = useNavigate();
     const nomeRef = useRef(null);
 
@@ -62,41 +63,85 @@ const ProdutoForm = () => {
                         }
                     }}
                 />
-                <TextField
-                    label="Preço *"
-                    type="number"
-                    fullWidth
-                    margin="normal"
-                    {...register('preco', { 
-                        required: 'Preço é obrigatório', 
-                        min: { value: 0, message: 'Preço deve ser positivo' } 
-                    })}
-                    error={!!errors.preco}
-                    helperText={errors.preco?.message}
-                    sx={{
-                        '& .MuiOutlinedInput-root': {
-                            '&:hover fieldset': { borderColor: '#1976d2' },
-                            '&.Mui-focused fieldset': { borderColor: '#4caf50' },
+                <Controller
+                    name="preco"
+                    control={control}
+                    rules={{
+                        required: 'Preço é obrigatório',
+                        validate: (value) => {
+                            const numericValue = parseFloat(value.replace(/[^0-9.]/g, ''));
+                            return numericValue >= 0 || 'Preço deve ser positivo';
                         }
                     }}
+                    render={({ field }) => (
+                        <TextField
+                            {...field}
+                            label="Preço *"
+                            fullWidth
+                            margin="normal"
+                            error={!!errors.preco}
+                            helperText={errors.preco?.message}
+                            InputProps={{
+                                inputComponent: IMaskInputWrapper,
+                                inputProps: {
+                                    mask: 'R$ num',
+                                    blocks: {
+                                        num: {
+                                            mask: Number,
+                                            thousandsSeparator: '.',
+                                            radix: ',',
+                                            scale: 2,
+                                            signed: false,
+                                            normalizeZeros: true,
+                                            padFractionalZeros: true,
+                                        }
+                                    },
+                                },
+                            }}
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    '&:hover fieldset': { borderColor: '#1976d2' },
+                                    '&.Mui-focused fieldset': { borderColor: '#4caf50' },
+                                }
+                            }}
+                        />
+                    )}
                 />
-                <TextField
-                    label="Estoque *"
-                    type="number"
-                    fullWidth
-                    margin="normal"
-                    {...register('estoque', { 
-                        required: 'Estoque é obrigatório', 
-                        min: { value: 0, message: 'Estoque deve ser positivo' } 
-                    })}
-                    error={!!errors.estoque}
-                    helperText={errors.estoque?.message}
-                    sx={{
-                        '& .MuiOutlinedInput-root': {
-                            '&:hover fieldset': { borderColor: '#1976d2' },
-                            '&.Mui-focused fieldset': { borderColor: '#4caf50' },
+                <Controller
+                    name="estoque"
+                    control={control}
+                    rules={{
+                        required: 'Estoque é obrigatório',
+                        validate: (value) => {
+                            const numericValue = parseInt(value, 10);
+                            return numericValue >= 0 || 'Estoque deve ser positivo';
                         }
                     }}
+                    render={({ field }) => (
+                        <TextField
+                            {...field}
+                            label="Estoque *"
+                            fullWidth
+                            margin="normal"
+                            error={!!errors.estoque}
+                            helperText={errors.estoque?.message}
+                            InputProps={{
+                                inputComponent: IMaskInputWrapper,
+                                inputProps: {
+                                    mask: Number,
+                                    scale: 0, // Inteiros, sem decimais
+                                    signed: false, // Não permite números negativos
+                                    thousandsSeparator: '',
+                                },
+                            }}
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    '&:hover fieldset': { borderColor: '#1976d2' },
+                                    '&.Mui-focused fieldset': { borderColor: '#4caf50' },
+                                }
+                            }}
+                        />
+                    )}
                 />
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
                     <Button 

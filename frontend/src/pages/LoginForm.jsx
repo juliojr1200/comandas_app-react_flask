@@ -1,81 +1,54 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useForm } from 'react-hook-form';
-import { TextField, Button, Box, Typography, Alert } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../AuthContext';
+import React from "react";
+import { useAuth } from "../context/AuthContext";
+import { useForm } from "react-hook-form";
+import { TextField, Button, Box, Typography, Toolbar } from "@mui/material";
+import { toast } from "react-toastify"; // Importa o toast do React Toastify
 
 const LoginForm = () => {
-    const { register, handleSubmit, watch, formState: { errors } } = useForm();
+    const { register, handleSubmit, formState: { errors } } = useForm();
     const { login } = useAuth();
-    const navigate = useNavigate();
-    const [error, setError] = useState('');
-    const usernameRef = useRef(null);
-
-    // Foco inicial no campo username
-    useEffect(() => {
-        usernameRef.current?.focus();
-    }, []);
-
-    // Monitorar campos para habilitar/desabilitar o botão de submit
-    const formValues = watch();
-    const isFormValid = formValues.username && formValues.password;
 
     const onSubmit = (data) => {
-        const success = login(data.username, data.password);
+        const { username, password } = data;
+        const success = login(username, password); // Usa o retorno da função login
         if (success) {
-            navigate('/');
+            toast.success("Login realizado com sucesso!"); // Notificação de sucesso
         } else {
-            setError('Usuário ou senha inválidos');
+            toast.error("Usuário ou senha inválidos!"); // Notificação de erro
         }
     };
 
     return (
-        <Box sx={{ maxWidth: 400, mx: 'auto', mt: 8, p: 3, backgroundColor: '#f5f5f5', borderRadius: 2, boxShadow: 3 }}>
-            <Typography variant="h4" align="center" color="primary" gutterBottom>Login</Typography>
-            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-            <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ backgroundColor: 'white', p: 3, borderRadius: 2 }}>
-                <TextField
-                    inputRef={usernameRef}
-                    label="Usuário *"
-                    fullWidth
-                    margin="normal"
-                    {...register('username', { 
-                        required: 'Usuário é obrigatório'
-                    })}
-                    error={!!errors.username}
+        <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ backgroundColor: '#ADD8E6', padding: 1, borderRadius: 1, mt: 2 }}>
+            <Toolbar sx={{ backgroundColor: '#ADD8E6', padding: 1, borderRadius: 2, mb: 2, display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="h6" color="primary">Login</Typography>
+            </Toolbar>
+            <Box sx={{ backgroundColor: 'white', padding: 2, borderRadius: 3, mb: 2 }}>
+                <TextField 
+                    label="Usuário" 
+                    fullWidth 
+                    margin="normal" 
+                    {...register('username', { required: 'Usuário é obrigatório' })} 
+                    error={!!errors.username} 
                     helperText={errors.username?.message}
-                    sx={{
-                        '& .MuiOutlinedInput-root': {
-                            '&:hover fieldset': { borderColor: '#1976d2' },
-                            '&.Mui-focused fieldset': { borderColor: '#4caf50' },
-                        }
-                    }}
                 />
-                <TextField
-                    label="Senha *"
-                    type="password"
-                    fullWidth
-                    margin="normal"
-                    {...register('password', { 
-                        required: 'Senha é obrigatória', 
-                        maxLength: { value: 100, message: 'Máximo 100 caracteres' }
-                    })}
-                    error={!!errors.password}
+                <TextField 
+                    label="Senha" 
+                    type="password" 
+                    fullWidth 
+                    margin="normal" 
+                    {...register('password', {
+                        required: 'Senha é obrigatória',
+                        minLength: { value: 6, message: 'Senha deve ter pelo menos 6 caracteres' }
+                    })} 
+                    error={!!errors.password} 
                     helperText={errors.password?.message}
-                    sx={{
-                        '& .MuiOutlinedInput-root': {
-                            '&:hover fieldset': { borderColor: '#1976d2' },
-                            '&.Mui-focused fieldset': { borderColor: '#4caf50' },
-                        }
-                    }}
                 />
                 <Button 
                     type="submit" 
                     variant="contained" 
-                    color="primary" 
                     fullWidth 
-                    disabled={!isFormValid}
-                    sx={{ mt: 2, py: 1.5 }}
+                    color="primary"
                 >
                     Entrar
                 </Button>

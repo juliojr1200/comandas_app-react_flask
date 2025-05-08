@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { TextField, Button, Box, Typography, Toolbar } from '@mui/material';
-import { IMaskInput } from 'react-imask';
 import { useNavigate } from 'react-router-dom';
+import IMaskInputWrapper from '../components/IMaskInputWrapper'; // Importa o wrapper
 
 const ClienteForm = () => {
     const { control, register, handleSubmit, watch, formState: { errors } } = useForm();
@@ -56,20 +56,18 @@ const ClienteForm = () => {
                             message: 'CPF deve ter 11 dígitos (ex.: 999.999.999-99)'
                         }
                     }}
-                    render={({ field: { onChange, value } }) => (
+                    render={({ field }) => (
                         <TextField
+                            {...field}
                             label="CPF *"
                             fullWidth
                             margin="normal"
-                            value={value || ''}
-                            onChange={onChange}
                             error={!!errors.cpf}
                             helperText={errors.cpf?.message}
                             InputProps={{
-                                inputComponent: IMaskInput,
+                                inputComponent: IMaskInputWrapper,
                                 inputProps: {
                                     mask: '000.000.000-00',
-                                    onAccept: (maskedValue) => onChange(maskedValue),
                                 },
                             }}
                             sx={{
@@ -91,20 +89,18 @@ const ClienteForm = () => {
                             message: 'Telefone deve ter 11 dígitos (ex.: (99) 99999-9999)'
                         }
                     }}
-                    render={({ field: { onChange, value } }) => (
+                    render={({ field }) => (
                         <TextField
+                            {...field}
                             label="Telefone *"
                             fullWidth
                             margin="normal"
-                            value={value || ''}
-                            onChange={onChange}
                             error={!!errors.telefone}
                             helperText={errors.telefone?.message}
                             InputProps={{
-                                inputComponent: IMaskInput,
+                                inputComponent: IMaskInputWrapper,
                                 inputProps: {
                                     mask: '(00) 00000-0000',
-                                    onAccept: (maskedValue) => onChange(maskedValue),
                                 },
                             }}
                             sx={{
@@ -144,20 +140,18 @@ const ClienteForm = () => {
                             message: 'CEP deve ter 8 dígitos (ex.: 99999-999)'
                         }
                     }}
-                    render={({ field: { onChange, value } }) => (
+                    render={({ field }) => (
                         <TextField
+                            {...field}
                             label="CEP *"
                             fullWidth
                             margin="normal"
-                            value={value || ''}
-                            onChange={onChange}
                             error={!!errors.cep}
                             helperText={errors.cep?.message}
                             InputProps={{
-                                inputComponent: IMaskInput,
+                                inputComponent: IMaskInputWrapper,
                                 inputProps: {
                                     mask: '00000-000',
-                                    onAccept: (maskedValue) => onChange(maskedValue),
                                 },
                             }}
                             sx={{
