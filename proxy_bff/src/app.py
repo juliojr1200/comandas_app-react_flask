@@ -1,18 +1,24 @@
 import os
 from flask import Flask, send_from_directory, session
 from datetime import timedelta
+from flask_cors import CORS
 import logging
 from settings import PROXY_PORT, PROXY_DEBUG, TEMPO_SESSION  # carrega o arquivo .env, variáveis de ambiente
 from funcoes import Funcoes
 
 # blueprints
 from mod_funcionario.funcionario import bp_funcionario
+from mod_cliente.cliente import bp_cliente
+from mod_produto.produto import bp_produto
 
 # Configuração básica de logging
 logging.basicConfig(level=logging.INFO)
 
 # Aplicação Flask
 app = Flask(__name__)
+
+# Habilita CORS para permitir requisições do frontend React
+CORS(app, resources={r"/api/*": {"origins": f"{FRONTEND_URL}"}})
 
 # Flask não serve automaticamente o favicon, então você precisa criar uma rota para ele
 # crie um arquivo favicon.ico na pasta static
@@ -50,6 +56,8 @@ def before_request():
 
 # registra as rotas dos blueprints
 app.register_blueprint(bp_funcionario)
+app.register_blueprint(bp_cliente)
+app.register_blueprint(bp_produto)
 
 # ponto de entrada para execução
 if __name__ == '__main__':
