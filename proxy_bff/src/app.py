@@ -3,7 +3,7 @@ from flask import Flask, send_from_directory, session
 from datetime import timedelta
 from flask_cors import CORS
 import logging
-from settings import PROXY_PORT, PROXY_DEBUG, TEMPO_SESSION  # carrega o arquivo .env, variáveis de ambiente
+from settings import PROXY_PORT, PROXY_DEBUG, TEMPO_SESSION, FRONTEND_URL  # carrega o arquivo .env, variáveis de ambiente
 from funcoes import Funcoes
 
 # blueprints
