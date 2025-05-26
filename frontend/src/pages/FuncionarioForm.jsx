@@ -113,7 +113,7 @@ const FuncionarioForm = () => {
       if (
         resultado &&
         resultado.id_funcionario &&
-        resultado.id_funcionario !== id
+        String(resultado.id_funcionario) !== String(id)
       ) {
         setCpfDuplicado(resultado);
         setDialogAberto(true);
@@ -162,7 +162,7 @@ const FuncionarioForm = () => {
             onClick={() => {
               setDialogAberto(false);
               navigate(
-                `/funcionarios/form/${cpfDuplicado.id_funcionario}/view`
+                `/funcionario/view/${cpfDuplicado.id_funcionario}`
               );
             }}
             color="primary"
@@ -173,7 +173,7 @@ const FuncionarioForm = () => {
             onClick={() => {
               setDialogAberto(false);
               navigate(
-                `/funcionarios/form/${cpfDuplicado.id_funcionario}/edit`
+                `/funcionario/edit/${cpfDuplicado.id_funcionario}`
               );
             }}
             color="secondary"
