@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from settings import API_ENDPOINT_FUNCIONARIO
 from funcoes import Funcoes
+from extensoes import bcrypt
 
 bp_funcionario = Blueprint('funcionario', __name__, url_prefix="/api/funcionario")
 
@@ -41,6 +42,9 @@ def create_funcionario():
     required_fields = ['nome', 'matricula', 'cpf', 'senha', 'grupo', 'telefone']
     if not all(field in data for field in required_fields):
         return jsonify({"error": f"Campos obrigatórios faltando: {required_fields}"}), 400
+    
+    data['senha'] = bcrypt.generate_password_hash(data['senha']).decode('utf-8')
+
     # chama a função para fazer a requisição à API externa
     response_data, status_code = Funcoes.make_api_request('post', API_ENDPOINT_FUNCIONARIO, data=data)
     # retorna o json da resposta da API externa
@@ -59,8 +63,15 @@ def update_funcionario():
     required_fields = ['id_funcionario', 'nome', 'matricula', 'cpf', 'senha', 'grupo', 'telefone']
     if not all(field in data for field in required_fields):
         return jsonify({"error": f"Campos obrigatórios faltando: {required_fields}"}), 400
+    
+    data['senha'] = bcrypt.generate_password_hash(data['senha']).decode('utf-8')
+
     # chama a função para fazer a requisição à API externa
-    response_data, status_code = Funcoes.make_api_request('put', f"{API_ENDPOINT_FUNCIONARIO}{data.get('id_funcionario')}", data=data)
+    response_data, status_code = Funcoes.make_api_request(
+        'put',
+        f"{API_ENDPOINT_FUNCIONARIO}{data.get('id_funcionario')}",
+        data=data
+        )
     # retorna o json da resposta da API externa
     return jsonify(response_data), status_code
 
@@ -90,7 +101,8 @@ def validate_cpf():
     # chama a função para fazer a requisição à API externa
     response_data, status_code = Funcoes.make_api_request('get', f"{API_ENDPOINT_FUNCIONARIO}cpf/{cpf}")
     # retorna o json da resposta da API externa
-    return jsonify(response_data), status_code
+    return jsonify(response_data[0] if isinstance(response_data, list) and response_data else {}), status_code
+
 
 
 # Rota para Validar o Login (POST)

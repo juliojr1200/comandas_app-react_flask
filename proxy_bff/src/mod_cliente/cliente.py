@@ -41,6 +41,7 @@ def create_cliente():
     required_fields = ['nome', 'cpf', 'telefone']
     if not all(field in data for field in required_fields):
         return jsonify({"error": f"Campos obrigatórios faltando: {required_fields}"}), 400
+    
     # chama a função para fazer a requisição à API externa
     response_data, status_code = Funcoes.make_api_request('post', API_ENDPOINT_CLIENTE, data=data)
     # retorna o json da resposta da API externa

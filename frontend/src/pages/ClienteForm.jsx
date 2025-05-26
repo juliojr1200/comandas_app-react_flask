@@ -3,6 +3,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { TextField, Button, Box, Typography, Toolbar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import IMaskInputWrapper from '../components/IMaskInputWrapper'; // Importa o wrapper
+import { verificarCpf } from '../services/clienteService';
 
 const ClienteForm = () => {
     const { control, register, handleSubmit, watch, formState: { errors } } = useForm();
@@ -70,6 +71,25 @@ const ClienteForm = () => {
                                     mask: '000.000.000-00',
                                 },
                             }}
+                            onBlur={async (e) => {
+                                field.onBlur();
+                                const cpf = e.target.value;
+                                if (!cpf) return;
+
+                                try {
+                                    const resultado = await verificarCpf(cpf);
+                                    if (resultado && resultado.id_cliente) {
+                                        const acao = window.confirm(
+                                            "Cpf já cadastrado!\n\nDeseja visuaalizar os dados existes?\n\nClique em 'OK' para visualizar ou 'Cancelar' para ficar nesta tela."
+                                        );
+                                        if (acao) {
+                                            navigate(`/clientes/view/${resultado.id_cliente}`);
+                                        }
+                                    } 
+                                    } catch (err) {
+                                        console.error("Erro ao verificar CPF:", err);
+                                    }
+                                }}
                             sx={{
                                 '& .MuiOutlinedInput-root': {
                                     '&:hover fieldset': { borderColor: '#1976d2' },

@@ -1,5 +1,6 @@
 import os
 from flask import Flask, send_from_directory, session
+from extensoes import bcrypt
 from datetime import timedelta
 from flask_cors import CORS
 import logging
@@ -17,6 +18,7 @@ logging.basicConfig(level=logging.INFO)
 
 # Aplicação Flask
 app = Flask(__name__)
+bcrypt.init_app(app)
 
 # Habilita CORS para permitir requisições do frontend React
 CORS(app, resources={r"/api/*": {"origins": f"{FRONTEND_URL}"}})
@@ -59,6 +61,8 @@ def before_request():
 app.register_blueprint(bp_funcionario)
 app.register_blueprint(bp_cliente)
 app.register_blueprint(bp_produto)
+
+from app import bcrypt
 
 # ponto de entrada para execução
 if __name__ == '__main__':

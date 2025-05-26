@@ -13,6 +13,7 @@ export const getFuncionarioById = async (id) => {
     return response.data[0];
 };
 
+
 // Criar um novo funcionário
 export const createFuncionario = async (funcionario) => {
     const response = await axios.post(`${PROXY_URL}`, funcionario);
@@ -30,3 +31,16 @@ export const deleteFuncionario = async (id) => {
     const response = await axios.delete(`${PROXY_URL}`, { params: { id_funcionario: id } });
     return response.data;
 };
+
+export const verificarCpf = async (cpf) => {
+  try {
+    const response = await axios.get(`${PROXY_URL}cpf`, {
+      params: { cpf }
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Erro ao verificar CPF:", error.response?.data || error.message);
+    return null;
+  }
+};
+
