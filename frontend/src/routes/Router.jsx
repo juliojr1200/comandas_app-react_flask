@@ -36,6 +36,8 @@ return (
 <Route path="/cliente" element={<PrivateRoute> <ClienteForm /> </PrivateRoute>} />
 <Route path="/produtos" element={<PrivateRoute> <ProdutoList /> </PrivateRoute>} />
 <Route path="/produto" element={<PrivateRoute> <ProdutoForm /> </PrivateRoute>} />
+{/* Rota para editar ou visualizar produto, com opr {view ou edit} e id dinâmico */}
+<Route path="/produto/:opr/:id" element={<PrivateRoute> <ProdutoForm /> </PrivateRoute>} />
 {/* Rota para editar ou visualizar funcionário, com opr {view ou edit} e id dinâmico */}
 <Route path="/funcionario/:opr/:id" element={<PrivateRoute> <FuncionarioForm /> </PrivateRoute>} />
 {/* Rota para páginas não encontradas */}
