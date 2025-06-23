@@ -12,6 +12,7 @@ from funcoes import Funcoes
 from mod_funcionario.funcionario import bp_funcionario
 from mod_cliente.cliente import bp_cliente
 from mod_produto.produto import bp_produto
+from mod_auth.auth import bp_auth
 
 # Configuração básica de logging
 logging.basicConfig(level=logging.INFO)
@@ -21,7 +22,7 @@ app = Flask(__name__)
 bcrypt.init_app(app)
 
 # Habilita CORS para permitir requisições do frontend React
-CORS(app, resources={r"/api/*": {"origins": f"{FRONTEND_URL}"}})
+CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
 
 # Flask não serve automaticamente o favicon, então você precisa criar uma rota para ele
 # crie um arquivo favicon.ico na pasta static
@@ -61,6 +62,7 @@ def before_request():
 app.register_blueprint(bp_funcionario)
 app.register_blueprint(bp_cliente)
 app.register_blueprint(bp_produto)
+app.register_blueprint(bp_auth)
 
 from app import bcrypt
 
@@ -75,3 +77,5 @@ if __name__ == '__main__':
         debug=PROXY_DEBUG,
         use_reloader=PROXY_DEBUG
     )
+
+    

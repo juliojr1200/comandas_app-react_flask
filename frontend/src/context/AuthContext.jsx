@@ -15,14 +15,31 @@ export const AuthProvider = ({ children }) => {
     const navigate = useNavigate();
 
     // Função para login
-    const login = (username, password) => {
-        if (username === "abc" && password === "bolinhas") {
-            setIsAuthenticated(true);
-            sessionStorage.setItem("loginRealizado", "true");
-            navigate("/home");
-            return true; // Retorna true para indicar sucesso
-        } else {
-            return false; // Retorna false para indicar falha
+    const login = async (username, password) => {
+        try {
+            const response = await fetch("http://localhost:5000/api/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ username, password }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+
+                sessionStorage.setItem("loginRealizado", "true");
+                sessionStorage.setItem("user", JSON.stringify(data));
+            
+                setIsAuthenticated(true);
+                navigate("/home");
+                return true;
+            } else {
+                return false; // Login falhou
+            }
+        } catch (error) {
+            console.error("Erro no login:", error);
+            return false;
         }
     };
 

@@ -1,261 +1,218 @@
-import React, { useEffect, useRef } from 'react';
+// frontend/src/pages/ClienteForm.jsx
+import React, { useEffect, useRef, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { TextField, Button, Box, Typography, Toolbar } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import IMaskInputWrapper from '../components/IMaskInputWrapper'; // Importa o wrapper
-import { verificarCpf } from '../services/clienteService';
+import {
+  TextField,
+  Button,
+  Box,
+  Typography,
+  Toolbar,
+  IconButton
+} from '@mui/material';
+import { useNavigate, useParams } from 'react-router-dom';
+import IMaskInputWrapper from '../components/IMaskInputWrapper';
+import {
+  getClienteById,
+  createCliente,
+  updateCliente,
+  verificarCpf
+} from '../services/clienteService';
+import { ArrowBack } from '@mui/icons-material';
 
 const ClienteForm = () => {
-    const { control, register, handleSubmit, watch, formState: { errors } } = useForm();
-    const navigate = useNavigate();
-    const nomeRef = useRef(null);
+  const { opr, id } = useParams(); // opr = "view" | "edit" ou undefined para "new"
+  const isViewMode = opr === 'view';
+  const isEditMode = opr === 'edit';
+  const isNewMode = !opr; // rota "/cliente" sem params => criar novo
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        nomeRef.current?.focus();
-    }, []);
+  const {
+    control,
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors }
+  } = useForm({
+    defaultValues: {
+      nome: '',
+      cpf: '',
+      telefone: ''
+    }
+  });
 
-    const formValues = watch();
-    const isFormValid = formValues.nome && formValues.cpf && formValues.telefone && formValues.email && 
-                        formValues.cep && formValues.endereco && formValues.bairro && formValues.cidade;
+  const nomeRef = useRef(null);
 
-    const onSubmit = (data) => {
-        console.log("Dados do cliente:", data);
-        navigate('/clientes');
-    };
+  // Foca no campo nome ao montar (se não for view mode)
+  useEffect(() => {
+    if (!isViewMode) nomeRef.current?.focus();
+  }, [isViewMode]);
 
-    return (
-        <Box sx={{ maxWidth: 600, mx: 'auto', mt: 4, p: 3, backgroundColor: '#f5f5f5', borderRadius: 2, boxShadow: 3 }}>
-            <Toolbar sx={{ backgroundColor: '#ADD8E6', padding: 1, borderRadius: 2, mb: 2 }}>
-                <Typography variant="h5" color="primary">Cadastro de Cliente</Typography>
-            </Toolbar>
-            <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ backgroundColor: 'white', p: 3, borderRadius: 2 }}>
-                <TextField
-                    inputRef={nomeRef}
-                    label="Nome *"
-                    fullWidth
-                    margin="normal"
-                    {...register('nome', { 
-                        required: 'Nome é obrigatório', 
-                        maxLength: { value: 100, message: 'Máximo 100 caracteres' } 
-                    })}
-                    error={!!errors.nome}
-                    helperText={errors.nome?.message}
-                    sx={{
-                        '& .MuiOutlinedInput-root': {
-                            '&:hover fieldset': { borderColor: '#1976d2' },
-                            '&.Mui-focused fieldset': { borderColor: '#4caf50' },
-                        }
-                    }}
-                />
-                <Controller
-                    name="cpf"
-                    control={control}
-                    rules={{
-                        required: 'CPF é obrigatório',
-                        pattern: {
-                            value: /^\d{3}\.\d{3}\.\d{3}-\d{2}$/,
-                            message: 'CPF deve ter 11 dígitos (ex.: 999.999.999-99)'
-                        }
-                    }}
-                    render={({ field }) => (
-                        <TextField
-                            {...field}
-                            label="CPF *"
-                            fullWidth
-                            margin="normal"
-                            error={!!errors.cpf}
-                            helperText={errors.cpf?.message}
-                            InputProps={{
-                                inputComponent: IMaskInputWrapper,
-                                inputProps: {
-                                    mask: '000.000.000-00',
-                                },
-                            }}
-                            onBlur={async (e) => {
-                                field.onBlur();
-                                const cpf = e.target.value;
-                                if (!cpf) return;
+  // Se o parâmetro "id" existir (edit ou view), carregar dados do cliente
+  useEffect(() => {
+    if ((isEditMode || isViewMode) && id) {
+      setLoading(true);
+      getClienteById(id)
+        .then((cliente) => {
+          // popula os campos
+          setValue('nome', cliente.nome);
+          setValue('cpf', cliente.cpf);
+          setValue('telefone', cliente.telefone);
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [id, isEditMode, isViewMode, setValue]);
 
-                                try {
-                                    const resultado = await verificarCpf(cpf);
-                                    if (resultado && resultado.id_cliente) {
-                                        const acao = window.confirm(
-                                            "Cpf já cadastrado!\n\nDeseja visuaalizar os dados existes?\n\nClique em 'OK' para visualizar ou 'Cancelar' para ficar nesta tela."
-                                        );
-                                        if (acao) {
-                                            navigate(`/clientes/view/${resultado.id_cliente}`);
-                                        }
-                                    } 
-                                    } catch (err) {
-                                        console.error("Erro ao verificar CPF:", err);
-                                    }
-                                }}
-                            sx={{
-                                '& .MuiOutlinedInput-root': {
-                                    '&:hover fieldset': { borderColor: '#1976d2' },
-                                    '&.Mui-focused fieldset': { borderColor: '#4caf50' },
-                                }
-                            }}
-                        />
-                    )}
-                />
-                <Controller
-                    name="telefone"
-                    control={control}
-                    rules={{
-                        required: 'Telefone é obrigatório',
-                        pattern: {
-                            value: /^\(\d{2}\) \d{5}-\d{4}$/,
-                            message: 'Telefone deve ter 11 dígitos (ex.: (99) 99999-9999)'
-                        }
-                    }}
-                    render={({ field }) => (
-                        <TextField
-                            {...field}
-                            label="Telefone *"
-                            fullWidth
-                            margin="normal"
-                            error={!!errors.telefone}
-                            helperText={errors.telefone?.message}
-                            InputProps={{
-                                inputComponent: IMaskInputWrapper,
-                                inputProps: {
-                                    mask: '(00) 00000-0000',
-                                },
-                            }}
-                            sx={{
-                                '& .MuiOutlinedInput-root': {
-                                    '&:hover fieldset': { borderColor: '#1976d2' },
-                                    '&.Mui-focused fieldset': { borderColor: '#4caf50' },
-                                }
-                            }}
-                        />
-                    )}
-                />
-                <TextField
-                    label="E-mail *"
-                    fullWidth
-                    margin="normal"
-                    {...register('email', { 
-                        required: 'E-mail é obrigatório', 
-                        pattern: { value: /^\S+@\S+$/i, message: 'E-mail inválido' },
-                        maxLength: { value: 100, message: 'Máximo 100 caracteres' }
-                    })}
-                    error={!!errors.email}
-                    helperText={errors.email?.message}
-                    sx={{
-                        '& .MuiOutlinedInput-root': {
-                            '&:hover fieldset': { borderColor: '#1976d2' },
-                            '&.Mui-focused fieldset': { borderColor: '#4caf50' },
-                        }
-                    }}
-                />
-                <Controller
-                    name="cep"
-                    control={control}
-                    rules={{
-                        required: 'CEP é obrigatório',
-                        pattern: {
-                            value: /^\d{5}-\d{3}$/,
-                            message: 'CEP deve ter 8 dígitos (ex.: 99999-999)'
-                        }
-                    }}
-                    render={({ field }) => (
-                        <TextField
-                            {...field}
-                            label="CEP *"
-                            fullWidth
-                            margin="normal"
-                            error={!!errors.cep}
-                            helperText={errors.cep?.message}
-                            InputProps={{
-                                inputComponent: IMaskInputWrapper,
-                                inputProps: {
-                                    mask: '00000-000',
-                                },
-                            }}
-                            sx={{
-                                '& .MuiOutlinedInput-root': {
-                                    '&:hover fieldset': { borderColor: '#1976d2' },
-                                    '&.Mui-focused fieldset': { borderColor: '#4caf50' },
-                                }
-                            }}
-                        />
-                    )}
-                />
-                <TextField
-                    label="Endereço *"
-                    fullWidth
-                    margin="normal"
-                    {...register('endereco', { 
-                        required: 'Endereço é obrigatório', 
-                        maxLength: { value: 150, message: 'Máximo 150 caracteres' } 
-                    })}
-                    error={!!errors.endereco}
-                    helperText={errors.endereco?.message}
-                    sx={{
-                        '& .MuiOutlinedInput-root': {
-                            '&:hover fieldset': { borderColor: '#1976d2' },
-                            '&.Mui-focused fieldset': { borderColor: '#4caf50' },
-                        }
-                    }}
-                />
-                <TextField
-                    label="Bairro *"
-                    fullWidth
-                    margin="normal"
-                    {...register('bairro', { 
-                        required: 'Bairro é obrigatório', 
-                        maxLength: { value: 50, message: 'Máximo 50 caracteres' } 
-                    })}
-                    error={!!errors.bairro}
-                    helperText={errors.bairro?.message}
-                    sx={{
-                        '& .MuiOutlinedInput-root': {
-                            '&:hover fieldset': { borderColor: '#1976d2' },
-                            '&.Mui-focused fieldset': { borderColor: '#4caf50' },
-                        }
-                    }}
-                />
-                <TextField
-                    label="Cidade *"
-                    fullWidth
-                    margin="normal"
-                    {...register('cidade', { 
-                        required: 'Cidade é obrigatória', 
-                        maxLength: { value: 50, message: 'Máximo 50 caracteres' } 
-                    })}
-                    error={!!errors.cidade}
-                    helperText={errors.cidade?.message}
-                    sx={{
-                        '& .MuiOutlinedInput-root': {
-                            '&:hover fieldset': { borderColor: '#1976d2' },
-                            '&.Mui-focused fieldset': { borderColor: '#4caf50' },
-                        }
-                    }}
-                />
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-                    <Button 
-                        variant="outlined" 
-                        color="secondary" 
-                        sx={{ mr: 2 }} 
-                        onClick={() => navigate('/clientes')}
-                    >
-                        Cancelar
-                    </Button>
-                    <Button 
-                        type="submit" 
-                        variant="contained" 
-                        color="primary" 
-                        disabled={!isFormValid}
-                        sx={{ px: 4 }}
-                    >
-                        Cadastrar
-                    </Button>
-                </Box>
+  // Função chamada ao submeter o formulário
+  const onSubmit = async (data) => {
+    try {
+      setLoading(true);
+
+      // Antes de criar/editar, opcionalmente validamos CPF
+      // const cpfExists = await verificarCpf(data.cpf);
+      // if (cpfExists && (isNewMode || cpfExists.id_cliente !== Number(id))) {
+      //   alert('Este CPF já está cadastrado!');
+      //   setLoading(false);
+      //   return;
+      // }
+
+      if (isEditMode) {
+        await updateCliente(id, data);
+        alert('Cliente atualizado com sucesso!');
+      } else {
+        await createCliente(data);
+        alert('Cliente cadastrado com sucesso!');
+      }
+      navigate('/clientes');
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao salvar cliente. Veja o console.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Box sx={{ p: 2 }}>
+      <Toolbar sx={{ mb: 2 }}>
+        <IconButton onClick={() => navigate(-1)}>
+          <ArrowBack />
+        </IconButton>
+        <Typography variant="h6" sx={{ flexGrow: 1 }}>
+          {isViewMode
+            ? `Visualizar Cliente`
+            : isEditMode
+            ? `Editar Cliente`
+            : `Novo Cliente`}
+        </Typography>
+      </Toolbar>
+
+      {/* Exibe “Carregando...” enquanto busca dados no modo edit/view */}
+      {loading ? (
+        <Typography>Carregando dados...</Typography>
+      ) : (
+        <Box
+          component="form"
+          onSubmit={handleSubmit(onSubmit)}
+          noValidate
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 2,
+            maxWidth: 400,
+            mx: 'auto'
+          }}
+        >
+          {/* NOME */}
+          <Controller
+            name="nome"
+            control={control}
+            rules={{
+              required: 'Nome é obrigatório',
+              minLength: { value: 3, message: 'Mínimo 3 caracteres' }
+            }}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Nome"
+                inputRef={nomeRef}
+                error={!!errors.nome}
+                helperText={errors.nome ? errors.nome.message : ''}
+                disabled={isViewMode}
+                fullWidth
+              />
+            )}
+          />
+
+          {/* CPF (com máscara) */}
+          <Controller
+            name="cpf"
+            control={control}
+            rules={{
+              required: 'CPF é obrigatório',
+              pattern: {
+                value: /^\d{3}\.\d{3}\.\d{3}\-\d{2}$/,
+                message: 'Formato inválido (ex: 000.000.000-00)'
+              }
+            }}
+            render={({ field }) => (
+              <IMaskInputWrapper
+                {...field}
+                mask="000.000.000-00"
+                label="CPF"
+                disabled={isViewMode}
+                error={!!errors.cpf}
+                helperText={errors.cpf ? errors.cpf.message : ''}
+                inputProps={{ inputMode: 'numeric' }}
+                fullWidth
+              />
+            )}
+          />
+
+          {/* TELEFONE (com máscara) */}
+          <Controller
+            name="telefone"
+            control={control}
+            rules={{
+              required: 'Telefone é obrigatório',
+              pattern: {
+                value: /^\(\d{2}\)\s\d{4,5}\-\d{4}$/,
+                message: 'Formato inválido (ex: (11) 98765-4321)'
+              }
+            }}
+            render={({ field }) => (
+              <IMaskInputWrapper
+                {...field}
+                mask="(00) 00000-0000"
+                label="Telefone"
+                disabled={isViewMode}
+                error={!!errors.telefone}
+                helperText={errors.telefone ? errors.telefone.message : ''}
+                inputProps={{ inputMode: 'numeric' }}
+                fullWidth
+              />
+            )}
+          />
+
+          {/* Botão de Salvar (oculto em modo view) */}
+          {!isViewMode && (
+            <Box sx={{ display: 'flex', justifyContent: 'end', mt: 2 }}>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={loading}
+                sx={{ px: 4 }}
+              >
+                {isEditMode ? 'Atualizar' : 'Cadastrar'}
+              </Button>
             </Box>
+          )}
         </Box>
-    );
+      )}
+    </Box>
+  );
 };
 
 export default ClienteForm;

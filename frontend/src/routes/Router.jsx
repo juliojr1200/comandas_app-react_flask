@@ -42,6 +42,8 @@ return (
 <Route path="/funcionario/:opr/:id" element={<PrivateRoute> <FuncionarioForm /> </PrivateRoute>} />
 {/* Rota para páginas não encontradas */}
 <Route path="*" element={<NotFound />} />
+{/* Rota para editar ou visualizar cliente, com opr {view ou edit} e id dinâmico */}
+<Route path="/cliente/:opr/:id" element={<PrivateRoute><ClienteForm /></PrivateRoute>} />
 </Routes>
 </Suspense>
 );

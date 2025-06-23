@@ -64,7 +64,7 @@ def update_funcionario():
     if not all(field in data for field in required_fields):
         return jsonify({"error": f"Campos obrigatórios faltando: {required_fields}"}), 400
     
-    data['senha'] = bcrypt.generate_password_hash(data['senha']).decode('utf-8')
+    """ data['senha'] = bcrypt.generate_password_hash(data['senha']).decode('utf-8') """
 
     # chama a função para fazer a requisição à API externa
     response_data, status_code = Funcoes.make_api_request(
@@ -113,11 +113,13 @@ def validar_login():
         return jsonify({"error": "Requisição deve ser JSON"}), 400
     # obtem o corpo da requisição JSON
     data = request.get_json()
+    print("[DEBUG] Corpo enviado para API externa:", data)
     # validação básica para ver se os campos foram informados no json
     required_fields = ['cpf', 'senha']
     if not all(field in data for field in required_fields):
         return jsonify({"error": f"Campos obrigatórios faltando: {required_fields}"}), 400
     # chama a função para fazer a requisição à API externa
     response_data, status_code = Funcoes.make_api_request('post', f"{API_ENDPOINT_FUNCIONARIO}login/", data=data)
+    print("[DEBUG] Resposta da API externa:", response_data, "Status:", status_code)
     # retorna o json da resposta da API externa
     return jsonify(response_data), status_code

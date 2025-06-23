@@ -1,3 +1,4 @@
+# proxy_bff/src/mod_cliente/cliente.py
 from flask import Blueprint, jsonify, request
 from settings import API_ENDPOINT_CLIENTE
 from funcoes import Funcoes
@@ -6,107 +7,90 @@ bp_cliente = Blueprint('cliente', __name__, url_prefix="/api/cliente")
 
 
 # --- Rotas da API do Backend (que serão consumidas pelo React) ---
-# Rota para Listar todos os Clientes (READ - All)
+
+# READ (All): Listar todos os clientes
 @bp_cliente.route('/all', methods=['GET'])
 def get_clientes():
-    # chama a função para fazer a requisição à API externa
     response_data, status_code = Funcoes.make_api_request('get', API_ENDPOINT_CLIENTE)
-    # retorna o json da resposta da API externa
     return jsonify(response_data), status_code
 
 
-# Rota para Obter um Cliente Específico (READ - One)
+# READ (One): Obter um cliente específico pelo ID
 @bp_cliente.route('/one', methods=['GET'])
 def get_cliente():
-    # obtém o ID do cliente a partir dos parâmetros de consulta da URL
+    # id_cliente vindo como querystring: /api/cliente/one?id_cliente=123
     id_cliente = request.args.get('id_cliente')
-    # valida se o id_cliente foi passado na URL
     if not id_cliente:
         return jsonify({"error": "O parâmetro 'id_cliente' é obrigatório"}), 400
-    # chama a função para fazer a requisição à API externa
+
+    # Encaminha a requisição GET para a API externa: GET {API_ENDPOINT_CLIENTE}{id_cliente}
     response_data, status_code = Funcoes.make_api_request('get', f"{API_ENDPOINT_CLIENTE}{id_cliente}")
-    # retorna o json da resposta da API externa
     return jsonify(response_data), status_code
 
 
-# Rota para Criar um novo Cliente (POST)
+# CREATE (POST): Inserir um novo cliente
 @bp_cliente.route('/', methods=['POST'])
 def create_cliente():
-    # verifica se o conteúdo da requisição é JSON
     if not request.is_json:
         return jsonify({"error": "Requisição deve ser JSON"}), 400
-    # obtém o corpo da requisição JSON
     data = request.get_json()
-    # validação básica para ver se os campos foram informados no json
+
+    # Campos obrigatórios: nome, cpf, telefone
     required_fields = ['nome', 'cpf', 'telefone']
     if not all(field in data for field in required_fields):
         return jsonify({"error": f"Campos obrigatórios faltando: {required_fields}"}), 400
-    
-    # chama a função para fazer a requisição à API externa
+
+    # Envia POST para a API externa: POST {API_ENDPOINT_CLIENTE}  com JSON = data
     response_data, status_code = Funcoes.make_api_request('post', API_ENDPOINT_CLIENTE, data=data)
-    # retorna o json da resposta da API externa
     return jsonify(response_data), status_code
 
 
-# Rota para Atualizar um Cliente existente (PUT)
+# UPDATE (PUT): Atualizar um cliente existente
 @bp_cliente.route('/', methods=['PUT'])
 def update_cliente():
-    # verifica se o conteúdo da requisição é JSON
     if not request.is_json:
         return jsonify({"error": "Requisição deve ser JSON"}), 400
-    # obtém o corpo da requisição JSON
     data = request.get_json()
-    # validação básica para ver se os campos foram informados no json
+
+    # Esperamos receber id_cliente + campos obrigatórios
     required_fields = ['id_cliente', 'nome', 'cpf', 'telefone']
     if not all(field in data for field in required_fields):
         return jsonify({"error": f"Campos obrigatórios faltando: {required_fields}"}), 400
-    # chama a função para fazer a requisição à API externa
-    response_data, status_code = Funcoes.make_api_request('put', f"{API_ENDPOINT_CLIENTE}{data.get('id_cliente')}", data=data)
-    # retorna o json da resposta da API externa
+
+    id_cliente = data.get('id_cliente')
+    if not id_cliente:
+        return jsonify({"error": "O parâmetro 'id_cliente' é obrigatório para atualização"}), 400
+
+    # Monta o JSON a ser enviado (sem incluir id_cliente como parte do corpo, se a API externa não exigir)
+    payload = {
+        "nome": data['nome'],
+        "cpf": data['cpf'],
+        "telefone": data['telefone']
+    }
+    # Encaminha PUT para a API externa: PUT {API_ENDPOINT_CLIENTE}{id_cliente}
+    response_data, status_code = Funcoes.make_api_request('put', f"{API_ENDPOINT_CLIENTE}{id_cliente}", data=payload)
     return jsonify(response_data), status_code
 
 
-# Rota para Deletar um Cliente (DELETE)
+# DELETE: Remover um cliente
 @bp_cliente.route('/', methods=['DELETE'])
 def delete_cliente():
-    # obtém o ID do cliente a partir dos parâmetros de consulta da URL
     id_cliente = request.args.get('id_cliente')
-    # valida se o id_cliente foi passado na URL
     if not id_cliente:
         return jsonify({"error": "O parâmetro 'id_cliente' é obrigatório"}), 400
-    # chama a função para fazer a requisição à API externa
+
+    # Encaminha DELETE para a API externa: DELETE {API_ENDPOINT_CLIENTE}{id_cliente}
     response_data, status_code = Funcoes.make_api_request('delete', f"{API_ENDPOINT_CLIENTE}{id_cliente}")
-    # retorna o json da resposta da API externa
     return jsonify(response_data), status_code
 
 
-# Rota para Validar se CPF já existe (GET)
+# GET /cpf: Validar se existe cliente com mesmo CPF
 @bp_cliente.route('/cpf', methods=['GET'])
 def validate_cpf():
-    # obtém o CPF a partir dos parâmetros de consulta da URL
     cpf = request.args.get('cpf')
-    # valida se o CPF foi passado na URL
     if not cpf:
         return jsonify({"error": "O parâmetro 'cpf' é obrigatório"}), 400
-    # chama a função para fazer a requisição à API externa
-    response_data, status_code = Funcoes.make_api_request('get', f"{API_ENDPOINT_CLIENTE}cpf/{cpf}")
-    # retorna o json da resposta da API externa
-    return jsonify(response_data), status_code
 
-
-# Rota para Validar o Login (POST)
-@bp_cliente.route('/login', methods=['POST'])
-def validar_login():
-    # verifica se o conteúdo da requisição é JSON
-    if not request.is_json:
-        return jsonify({"error": "Requisição deve ser JSON"}), 400
-    # obtém o corpo da requisição JSON
-    data = request.get_json()
-    # validação básica para ver se os campos foram informados no json
-    required_fields = ['cpf', 'senha']
-    if not all(field in data for field in required_fields):
-        return jsonify({"error": f"Campos obrigatórios faltando: {required_fields}"}), 400
-    # chama a função para fazer a requisição à API externa
-    response_data, status_code = Funcoes.make_api_request('post', f"{API_ENDPOINT_CLIENTE}login/", data=data)
-    # retorna o json da resposta da API externa
+    # Encaminha GET para a API externa: GET {API_ENDPOINT_CLIENTE}cpf/?cpf=<cpf>
+    response_data, status_code = Funcoes.make_api_request('get', f"{API_ENDPOINT_CLIENTE}cpf/", params={'cpf': cpf})
     return jsonify(response_data), status_code
