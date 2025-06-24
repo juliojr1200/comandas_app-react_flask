@@ -64,8 +64,6 @@ app.register_blueprint(bp_cliente)
 app.register_blueprint(bp_produto)
 app.register_blueprint(bp_auth)
 
-from app import bcrypt
-
 # ponto de entrada para execução
 if __name__ == '__main__':
     logging.info(f"Iniciando o servidor Flask na porta: {PROXY_PORT}")

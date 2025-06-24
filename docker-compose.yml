@@ -1,0 +1,22 @@
+version: '3.9'
+
+services:
+  proxy_bff:
+    build:
+      context: ./proxy_bff
+    container_name: proxy_bff
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./proxy_bff:/app
+    environment:
+      - FRONTEND_URL=http://localhost:5173
+      - PROXY_PORT=5000
+      - PROXY_DEBUG=True
+      - API_SSL_VERIFY=False
+      - API_ENDPOINT_TOKEN=http://localhost:5000/api/login
+      - API_USERNAME_TOKEN=abc
+      - API_PASSWORD_TOKEN=bolinhas
+      - API_PASSWORD_HASH=$$2b$$12$$MBETvcDw6pL3ld1VkPuavuHd8/EckFFY6enGXhG4i.3UT0nwHvPHy
+      - TEMPO_SESSION=30
+    command: python src/app.py
